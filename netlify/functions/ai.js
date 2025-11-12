@@ -1,10 +1,24 @@
 const fetch = require('node-fetch');
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+};
+
 exports.handler = async (event, context) => {
-  // Only allow POST requests
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers: CORS_HEADERS,
+      body: ''
+    };
+  }
+
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
+      headers: CORS_HEADERS,
       body: JSON.stringify({ error: 'Method not allowed' })
     };
   }
@@ -17,6 +31,7 @@ exports.handler = async (event, context) => {
     if (!apiKey) {
       return {
         statusCode: 500,
+        headers: CORS_HEADERS,
         body: JSON.stringify({ error: 'API key not configured' })
       };
     }
@@ -44,6 +59,7 @@ exports.handler = async (event, context) => {
       console.error('OpenTyphoon API Error:', errorData);
       return {
         statusCode: response.status,
+        headers: CORS_HEADERS,
         body: JSON.stringify({ 
           error: 'API request failed',
           details: errorData
@@ -56,10 +72,8 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+        ...CORS_HEADERS,
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify(data)
     };
@@ -68,6 +82,7 @@ exports.handler = async (event, context) => {
     console.error('Function error:', error);
     return {
       statusCode: 500,
+      headers: CORS_HEADERS,
       body: JSON.stringify({ 
         error: 'Internal server error',
         message: error.message
